@@ -26,8 +26,9 @@ const lerPessoaSalva = () => {
  * Folha de lançamento rápido. Fluxo mínimo: digitar valor → tocar categoria → Salvar.
  * Pessoa fica lembrada no aparelho; meio padrão cartão; parcelas padrão 1.
  * Com `lancamento`, edita (e permite excluir) um lançamento existente.
+ * Com `compra` (transacoes_cartao), lança a partir da fatura já vinculado a ela.
  */
-export default function Lancar({ aberto, categorias, categoriaInicial, lancamento, hoje, onFechar, onSalvo }) {
+export default function Lancar({ aberto, categorias, categoriaInicial, lancamento, compra, hoje, onFechar, onSalvo }) {
   const [valor, setValor] = useState('');
   const [categoriaId, setCategoriaId] = useState(null);
   const [pessoa, setPessoa] = useState(lerPessoaSalva);
@@ -54,7 +55,17 @@ export default function Lancar({ aberto, categorias, categoriaInicial, lancament
     setMais(!!l);
     setErro(null);
     setConfirmarExclusao(false);
-  }, [aberto, categoriaInicial, lancamento, hoje]);
+    if (compra) {
+      // Parcela 1/N na fatura: o lançamento guarda o valor cheio da compra.
+      const n = Number(compra.total_parcelas ?? 1) || 1;
+      setValor(formatarNumero(Number(compra.valor_brl) * n));
+      setCategoriaId(compra.categoria_id ?? null);
+      setParcelas(n);
+      setData(compra.data_compra);
+      setDescricao(compra.estabelecimento ?? '');
+      setMais(true);
+    }
+  }, [aberto, categoriaInicial, lancamento, compra, hoje]);
 
   if (!aberto) return null;
 
@@ -83,7 +94,7 @@ export default function Lancar({ aberto, categorias, categoriaInicial, lancament
         onSalvo(`Atualizado: ${resumo}`);
         return;
       }
-      await inserirLancamento(campos);
+      await inserirLancamento(compra ? { ...campos, transacao_cartao_id: compra.id } : campos);
       try {
         localStorage.setItem(CHAVE_PESSOA, pessoa);
       } catch {
@@ -125,7 +136,7 @@ export default function Lancar({ aberto, categorias, categoriaInicial, lancament
           <span>R$</span>
           <input
             // autoFocus no mesmo toque que abre a folha: é o que faz o iOS abrir o teclado.
-            autoFocus={!editando}
+            autoFocus={!editando && !compra}
             inputMode="decimal"
             autoComplete="off"
             placeholder="0,00"
@@ -186,6 +197,8 @@ export default function Lancar({ aberto, categorias, categoriaInicial, lancament
             + data e descrição
           </button>
         )}
+
+        {compra && <p className="aviso">Vai ficar conciliado com “{compra.estabelecimento}” da fatura.</p>}
 
         {erro && <p className="erro">{erro}</p>}
 

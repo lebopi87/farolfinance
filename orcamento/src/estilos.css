@@ -249,3 +249,22 @@ input { font: inherit; font-size: 16px; /* evita zoom no iOS */ }
 .campo-coluna { flex-direction: column; align-items: stretch; gap: 6px; }
 .campo-coluna input { padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; }
 .salvar-parametros { width: 100%; margin-top: 16px; }
+
+/* Conciliação */
+.seletor-fatura { width: 100%; font-size: 16px; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text); margin-bottom: 10px; }
+.contagens { display: flex; flex-wrap: wrap; gap: 6px; }
+.contagens .selo { font-size: 12px; padding: 3px 8px; }
+.selo.alerta { background: var(--red-light); color: var(--red); }
+.selo.neutro { background: var(--surface2); color: var(--text2); }
+.par { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: start; margin-bottom: 8px; }
+.par-lado { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.par-nome { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.par-seta { align-self: center; color: var(--text3); font-size: 18px; }
+.par-acoes { grid-column: 1 / -1; display: flex; justify-content: flex-end; align-items: center; gap: 16px; border-top: 1px solid var(--surface2); padding-top: 8px; }
+.btn-pequeno { height: 36px; padding: 0 18px; border-radius: 18px; background: var(--accent); color: #fff; font-weight: 600; font-size: 14px; }
+.btn-pequeno:disabled { opacity: 0.5; }
+.nao-lancadas { border-left: 4px solid var(--red); }
+.nao-lancadas .item-lanc { padding: 10px 12px; }
+.nao-lancadas .btn-texto, .lista-lanc .btn-texto { padding: 2px 0; align-self: flex-end; font-size: 13px; }
+.titulo-botao { display: block; width: 100%; text-align: left; }
+.titulo-botao small { font-family: 'DM Sans', sans-serif; font-size: 13px; }

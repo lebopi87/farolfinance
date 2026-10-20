@@ -6,6 +6,7 @@ import Semana from './telas/Semana.jsx';
 import Mes from './telas/Mes.jsx';
 import Lancamentos from './telas/Lancamentos.jsx';
 import Parametros from './telas/Parametros.jsx';
+import Conciliacao from './telas/Conciliacao.jsx';
 import Lancar from './componentes/Lancar.jsx';
 
 const ABAS = [
@@ -16,7 +17,7 @@ const ABAS = [
   { id: 'mais', nome: 'Mais', icone: '⋯' },
 ];
 
-const FECHADO = { aberto: false, categoria: null, lancamento: null };
+const FECHADO = { aberto: false, categoria: null, lancamento: null, compra: null };
 
 // Atualiza "hoje" quando o app volta para a frente (ex.: aberto desde ontem).
 function useHoje() {
@@ -39,6 +40,8 @@ export default function App() {
   const [aba, setAba] = useState('hoje');
   const [lancar, setLancar] = useState(FECHADO);
   const [subMais, setSubMais] = useState('parametros');
+  // Muda a cada gravação, para telas com dados próprios (Conciliação) recarregarem.
+  const [versao, setVersao] = useState(0);
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
@@ -50,6 +53,7 @@ export default function App() {
   const recarregarTudo = () => {
     orcamento.recarregar();
     orcamentoSel.recarregar();
+    setVersao((v) => v + 1);
   };
   const avisar = (msg) => setToast(msg);
 
@@ -86,7 +90,16 @@ export default function App() {
                 }}
               />
             ) : (
-              <p className="carregando">Chega na Etapa 5.</p>
+              <Conciliacao
+                categorias={orcamento.categorias}
+                versao={versao}
+                onLancarCompra={(compra) => setLancar({ ...FECHADO, aberto: true, compra })}
+                onAlterado={(msg) => {
+                  avisar(msg);
+                  orcamento.recarregar();
+                  orcamentoSel.recarregar();
+                }}
+              />
             )}
           </section>
         )}
@@ -112,6 +125,7 @@ export default function App() {
         categorias={orcamento.categorias}
         categoriaInicial={lancar.categoria}
         lancamento={lancar.lancamento}
+        compra={lancar.compra}
         hoje={hoje}
         onFechar={() => setLancar(FECHADO)}
         onSalvo={(msg) => {

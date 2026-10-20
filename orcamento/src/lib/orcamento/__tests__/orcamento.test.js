@@ -314,9 +314,18 @@ describe('conciliação', () => {
   it('parcela 2/N em diante vai para a provisão', () => {
     expect(r.t4.status).toBe('provisao');
   });
+  it('gasto fixo parcelado fica em fixo, não na provisão', () => {
+    const [x] = sugerirConciliacao([{ id: 'v', data_compra: '2025-08-21', valor_brl: 58.25, tipo: 'compra', parcela_atual: 10, total_parcelas: 12, gasto_fixo_id: 'g' }], []);
+    expect(x.status).toBe('fixo');
+  });
   it('compra sem lançamento fica como não lançada (lançamento já usado ou fora da janela)', () => {
     expect(r.t5.status).toBe('nao_lancada');
     expect(r.t6.status).toBe('nao_lancada');
+  });
+  it('par recusado não volta; a compra pega o próximo candidato', () => {
+    const r2 = Object.fromEntries(sugerirConciliacao(tx, lanc, new Set(['t1:b'])).map((x) => [x.transacao.id, x]));
+    expect(r2.t1).toMatchObject({ status: 'sugerido', lancamento: { id: 'a' } });
+    expect(r2.t2).toMatchObject({ status: 'sugerido', lancamento: { id: 'b' } });
   });
   it('já vinculada e estorno', () => {
     expect(r.t9).toMatchObject({ status: 'vinculado', lancamento: { id: 'd' } });

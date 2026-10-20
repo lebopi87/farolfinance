@@ -107,3 +107,52 @@ export async function carregarParceladosAntes(ano, mes) {
       .order('data', { ascending: false }),
   );
 }
+
+export async function carregarFaturas() {
+  return ok(
+    await sb
+      .from('faturas')
+      .select('id,mes,ano,status,valor_total,cartoes(nome,cor)')
+      .order('ano', { ascending: false })
+      .order('mes', { ascending: false }),
+  );
+}
+
+/**
+ * Compras de uma fatura e os lançamentos que podem casar com elas: os da janela
+ * de datas (±3 dias) e os que já estão vinculados a alguma dessas compras.
+ */
+export async function carregarConciliacao(faturaId) {
+  const transacoes = ok(
+    await sb
+      .from('transacoes_cartao')
+      .select('*, categorias(nome,icone)')
+      .eq('fatura_id', faturaId)
+      .order('data_compra', { ascending: false }),
+  );
+  if (!transacoes.length) return { transacoes, lancamentos: [] };
+
+  // Parcelas 2/N trazem a data da compra original; ficam fora da janela.
+  const datas = transacoes.filter((t) => Number(t.parcela_atual ?? 1) < 2).map((t) => t.data_compra).sort();
+  const consultas = [
+    sb.from('lancamentos').select('*').in('transacao_cartao_id', transacoes.map((t) => t.id)),
+  ];
+  if (datas.length) {
+    const desloca = (iso, dias) => {
+      const d = new Date(`${iso}T12:00:00Z`);
+      d.setUTCDate(d.getUTCDate() + dias);
+      return d.toISOString().slice(0, 10);
+    };
+    consultas.push(
+      sb.from('lancamentos').select('*').gte('data', desloca(datas[0], -3)).lte('data', desloca(datas.at(-1), 3)),
+    );
+  }
+  const porId = new Map();
+  for (const r of await Promise.all(consultas)) for (const l of ok(r)) porId.set(l.id, l);
+  return { transacoes, lancamentos: [...porId.values()] };
+}
+
+/** Vincula (ou desvincula, com null) um lançamento a uma compra da fatura. */
+export async function vincularLancamento(lancamentoId, transacaoId) {
+  return atualizarLancamento(lancamentoId, { transacao_cartao_id: transacaoId });
+}

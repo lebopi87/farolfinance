@@ -29,8 +29,11 @@ function valorBate(t, l) {
  * - provisao: parcela 2/N em diante (coberta pela provisão do cartão)
  * - fixo: ligada a um gasto fixo
  * - ignorada: estorno ou pagamento
+ *
+ * `rejeitados` guarda pares recusados pelo usuário ('transacaoId:lancamentoId'),
+ * que não voltam a ser sugeridos.
  */
-export function sugerirConciliacao(transacoes, lancamentos) {
+export function sugerirConciliacao(transacoes, lancamentos, rejeitados = new Set()) {
   const vinculadas = new Map(
     lancamentos.filter((l) => l.transacao_cartao_id).map((l) => [l.transacao_cartao_id, l]),
   );
@@ -41,8 +44,9 @@ export function sugerirConciliacao(transacoes, lancamentos) {
   for (const t of transacoes) {
     if (vinculadas.has(t.id)) resultado.set(t.id, { transacao: t, status: 'vinculado', lancamento: vinculadas.get(t.id) });
     else if (IGNORAR_TIPOS.includes(t.tipo)) resultado.set(t.id, { transacao: t, status: 'ignorada' });
-    else if (Number(t.parcela_atual ?? 1) >= 2) resultado.set(t.id, { transacao: t, status: 'provisao' });
+    // Fixo antes de parcela: um fixo parcelado (ex.: Verisure 10/12) já está em Fixos, não na provisão.
     else if (t.gasto_fixo_id) resultado.set(t.id, { transacao: t, status: 'fixo' });
+    else if (Number(t.parcela_atual ?? 1) >= 2) resultado.set(t.id, { transacao: t, status: 'provisao' });
     else pendentes.push(t);
   }
 
@@ -50,10 +54,19 @@ export function sugerirConciliacao(transacoes, lancamentos) {
   for (const t of pendentes) {
     for (const l of livres) {
       const dist = Math.abs(diferencaDias(t.data_compra, l.data));
-      if (dist <= JANELA_DIAS && valorBate(t, l)) candidatos.push({ t, l, dist });
+      if (dist <= JANELA_DIAS && valorBate(t, l) && !rejeitados.has(`${t.id}:${l.id}`)) candidatos.push({ t, l, dist });
     }
   }
-  candidatos.sort((a, b) => a.dist - b.dist || String(a.t.data_compra).localeCompare(b.t.data_compra));
+  // Compras com menos opções escolhem primeiro, para não perderem o único par
+  // para uma compra que tinha alternativas; depois, a data mais próxima.
+  const opcoes = new Map();
+  for (const { t } of candidatos) opcoes.set(t.id, (opcoes.get(t.id) ?? 0) + 1);
+  candidatos.sort(
+    (a, b) =>
+      opcoes.get(a.t.id) - opcoes.get(b.t.id) ||
+      a.dist - b.dist ||
+      String(a.t.data_compra).localeCompare(b.t.data_compra),
+  );
 
   const usados = new Set();
   for (const { t, l, dist } of candidatos) {
