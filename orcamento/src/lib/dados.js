@@ -52,3 +52,25 @@ export async function garantirParametrosMes(ano, mes, categorias) {
 export async function inserirLancamento(l) {
   return ok(await sb.from('lancamentos').insert(l).select().single());
 }
+
+/** Fixos, lançamentos de fixos e receitas: base do fechamento (tabelas pequenas, carrega tudo). */
+export async function carregarBaseFechamento() {
+  const [gastosFixos, lancamentosFixos, receitas] = await Promise.all([
+    sb.from('gastos_fixos').select('*').then(ok),
+    sb.from('lancamentos_fixos').select('*').then(ok),
+    sb.from('receitas').select('*').then(ok),
+  ]);
+  return { gastosFixos, lancamentosFixos, receitas };
+}
+
+/** Compras parceladas feitas antes do mês: as únicas que podem ter parcela cobrada nele. */
+export async function carregarParceladosAntes(ano, mes) {
+  return ok(
+    await sb
+      .from('lancamentos')
+      .select('*, categorias(nome,icone)')
+      .gt('total_parcelas', 1)
+      .lt('data', formatarISO(ano, mes, 1))
+      .order('data', { ascending: false }),
+  );
+}

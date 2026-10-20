@@ -170,3 +170,51 @@ input { font: inherit; font-size: 16px; /* evita zoom no iOS */ }
   background: var(--text); color: #fff; padding: 10px 16px; border-radius: 20px;
   font-size: 14px; z-index: 200; box-shadow: var(--shadow-lg); max-width: calc(100% - 32px);
 }
+
+/* Cabeçalho com seletor de mês */
+.linha-topo { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.seletor-mes { display: flex; align-items: center; gap: 4px; background: var(--surface2); border-radius: var(--radius-sm); padding: 4px 6px; }
+.seletor-mes button { width: 32px; height: 32px; font-size: 20px; color: var(--text2); }
+.seletor-mes span { font-size: 14px; font-weight: 600; min-width: 108px; text-align: center; }
+
+.titulo-secao { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 22px; margin: 22px 0 10px; }
+.nota { margin: -6px 0 10px; }
+.bloco-sub { display: block; }
+
+/* Semana */
+.abas-semana { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; }
+.abas-semana button { flex: 1; min-width: 52px; display: flex; flex-direction: column; align-items: center; padding: 8px 4px; border-radius: var(--radius-sm); background: var(--surface2); color: var(--text2); }
+.abas-semana button strong { font-size: 14px; }
+.abas-semana button span { font-size: 11px; }
+.abas-semana button.ativo { background: var(--accent); color: #fff; }
+.cartao-semana { padding: 0; overflow: hidden; }
+.sem-sombra { box-shadow: none; background: none; }
+.seta { color: var(--text3); font-size: 18px; transition: transform 0.15s; }
+.seta.aberta { transform: rotate(90deg); }
+
+.tabela-dias, .tabela-mes { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tabela-dias { border-top: 1px solid var(--border); }
+.tabela-dias th, .tabela-mes th { font-size: 10px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: var(--text3); text-align: right; padding: 8px 6px 6px; }
+.tabela-dias td, .tabela-mes td { text-align: right; padding: 7px 6px; border-top: 1px solid var(--surface2); white-space: nowrap; }
+.tabela-dias th:first-child, .tabela-dias td:first-child, .tabela-mes th:first-child, .tabela-mes td:first-child { text-align: left; padding-left: 14px; }
+.tabela-dias th:last-child, .tabela-dias td:last-child, .tabela-mes th:last-child, .tabela-mes td:last-child { padding-right: 14px; }
+.tabela-dias td small { display: block; font-size: 10px; line-height: 1.1; opacity: 0.85; }
+.tabela-dias tr.hoje td { background: var(--accent-light); font-weight: 600; }
+.tabela-dias tr.futuro td { color: var(--text3); }
+
+/* Mês */
+.tabela-card { padding: 4px 0; }
+.tabela-mes { font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.tabela-mes th, .tabela-mes td { padding-left: 4px; padding-right: 4px; }
+.tabela-mes .nome-cat { white-space: normal; line-height: 1.2; }
+.tabela-mes .emoji { margin-right: 4px; }
+.tabela-mes tfoot td { font-weight: 600; border-top: 2px solid var(--border); }
+.emoji { font-size: 14px; }
+
+.linhas { padding: 4px 16px; }
+.linha { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--surface2); width: 100%; text-align: left; }
+.linha:last-child { border-bottom: none; }
+.linha.total { font-size: 17px; border-top: 2px solid var(--border); }
+.linha small { margin-left: 4px; }
+.parcelas { list-style: none; background: var(--surface2); border-radius: 8px; padding: 4px 10px; margin: 2px 0 6px; font-size: 13px; }
+.parcelas li { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; }

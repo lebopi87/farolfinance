@@ -15,6 +15,7 @@ import {
   exibirMeta,
   resultadoDoDia,
   formatarBRL,
+  formatarNumero,
   lerValor,
   arred2,
 } from '../index.js';
@@ -266,6 +267,7 @@ describe('exibição', () => {
   it('formata reais', () => {
     expect(formatarBRL(1234567.891)).toBe('R$ 1.234.567,89');
     expect(formatarBRL(-1.918)).toBe('-R$ 1,92');
+    expect(formatarNumero(4106.4516)).toBe('4.106,45');
   });
   it('lê o valor digitado no lançamento', () => {
     expect(lerValor('12,50')).toBe(12.5);

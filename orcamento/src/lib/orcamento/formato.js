@@ -2,12 +2,17 @@
 
 export const arred2 = (v) => Math.round((Number(v) + Number.EPSILON) * 100) / 100;
 
-/** 1234.5 → 'R$ 1.234,50' (espaço comum, negativos como '-R$ 1,92'). */
-export function formatarBRL(v) {
+/** 1234.5 → '1.234,50' (sem símbolo, para tabelas). */
+export function formatarNumero(v) {
   const n = arred2(v);
   const [int, dec] = Math.abs(n).toFixed(2).split('.');
-  const milhar = int.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  return `${n < 0 ? '-' : ''}R$ ${milhar},${dec}`;
+  return `${n < 0 ? '-' : ''}${int.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${dec}`;
+}
+
+/** 1234.5 → 'R$ 1.234,50' (espaço comum, negativos como '-R$ 1,92'). */
+export function formatarBRL(v) {
+  const n = formatarNumero(v);
+  return n.startsWith('-') ? `-R$ ${n.slice(1)}` : `R$ ${n}`;
 }
 
 export function formatarPercentual(fracao) {

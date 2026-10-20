@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { hojeISO, parseData } from './lib/orcamento/index.js';
 import { useOrcamentoMes } from './hooks/useOrcamentoMes.js';
 import Hoje from './telas/Hoje.jsx';
+import Semana from './telas/Semana.jsx';
+import Mes from './telas/Mes.jsx';
 import Lancar from './componentes/Lancar.jsx';
 
 const ABAS = [
   { id: 'hoje', nome: 'Hoje', icone: '◎' },
-  { id: 'semana', nome: 'Semana', icone: '▦', etapa: 3 },
-  { id: 'mes', nome: 'Mês', icone: '▤', etapa: 3 },
+  { id: 'semana', nome: 'Semana', icone: '▦' },
+  { id: 'mes', nome: 'Mês', icone: '▤' },
   { id: 'lancamentos', nome: 'Lançamentos', icone: '☰', etapa: 4 },
   { id: 'mais', nome: 'Mais', icone: '⋯', etapa: 4 },
 ];
@@ -27,6 +29,9 @@ export default function App() {
   const hoje = useHoje();
   const { ano, mes } = parseData(hoje);
   const orcamento = useOrcamentoMes(ano, mes, hoje);
+  // Mês escolhido nas telas Semana e Mês (Hoje é sempre o mês corrente).
+  const [sel, setSel] = useState({ ano, mes });
+  const orcamentoSel = useOrcamentoMes(sel.ano, sel.mes, hoje);
   const [aba, setAba] = useState('hoje');
   const [lancar, setLancar] = useState({ aberto: false, categoria: null });
   const [toast, setToast] = useState(null);
@@ -44,6 +49,10 @@ export default function App() {
       <main>
         {aba === 'hoje' ? (
           <Hoje hoje={hoje} orcamento={orcamento} onLancar={(categoria) => setLancar({ aberto: true, categoria })} />
+        ) : aba === 'semana' ? (
+          <Semana key={`${sel.ano}-${sel.mes}`} {...sel} hoje={hoje} orcamento={orcamentoSel} onMudarMes={setSel} />
+        ) : aba === 'mes' ? (
+          <Mes key={`${sel.ano}-${sel.mes}`} {...sel} orcamento={orcamentoSel} onMudarMes={setSel} />
         ) : (
           <section className="tela">
             <header className="tela-topo"><h1>{abaAtual.nome}</h1></header>
@@ -75,6 +84,7 @@ export default function App() {
           setLancar({ aberto: false, categoria: null });
           setToast(`Lançado: ${msg}`);
           orcamento.recarregar();
+          orcamentoSel.recarregar();
         }}
       />
 

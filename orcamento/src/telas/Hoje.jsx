@@ -1,7 +1,5 @@
 import { exibirMeta, formatarBRL, formatarPercentual, parseData } from '../lib/orcamento/index.js';
-
-const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+import { MESES, DIAS } from '../lib/rotulos.js';
 
 /** Tela inicial: quanto dá para gastar hoje em cada categoria. */
 export default function Hoje({ hoje, orcamento, onLancar }) {
