@@ -1,7 +1,7 @@
 // Leitura e gravação no Supabase. Toda a lógica de cálculo fica em ./orcamento.
 
 import { sb } from './supabase.js';
-import { diasNoMes, formatarISO, resolverParametrosMes } from './orcamento/index.js';
+import { diasNoMes, formatarISO, parametrosDoMesAnterior, resolverParametrosMes } from './orcamento/index.js';
 
 const ok = ({ data, error }) => {
   if (error) throw new Error(error.message);
@@ -28,13 +28,18 @@ export async function carregarLancamentosDoMes(ano, mes) {
  * Parâmetros do mês. Se o mês ainda não tiver metas ou orcamento_mes, grava
  * as herdadas (mês anterior → metas_categoria) para ele passar a ter as suas.
  */
-export async function garantirParametrosMes(ano, mes, categorias) {
+async function carregarFontesParametros() {
   const [metasMensais, orcamentos, metasCategoria] = await Promise.all([
     sb.from('metas_mensais').select('categoria_id,mes,ano,valor').then(ok),
     sb.from('orcamento_mes').select('*').then(ok),
     sb.from('metas_categoria').select('categoria,meta_mensal,ativo').then(ok),
   ]);
-  const p = resolverParametrosMes({ ano, mes, categorias, metasMensais, orcamentos, metasCategoria });
+  return { metasMensais, orcamentos, metasCategoria };
+}
+
+export async function garantirParametrosMes(ano, mes, categorias) {
+  const fontes = await carregarFontesParametros();
+  const p = resolverParametrosMes({ ano, mes, categorias, ...fontes });
 
   if (p.aGravar.metasMensais.length) {
     ok(
@@ -49,8 +54,36 @@ export async function garantirParametrosMes(ano, mes, categorias) {
   return p;
 }
 
+/** Valores do mês anterior, para o botão "copiar do mês anterior" (não grava). */
+export async function carregarParametrosDoMesAnterior(ano, mes, categorias) {
+  return parametrosDoMesAnterior({ ano, mes, categorias, ...(await carregarFontesParametros()) });
+}
+
+/** Grava metas, meta de economia, provisão extra e observação do mês (sobrescreve). */
+export async function salvarParametrosMes(ano, mes, { metas, metaEconomia, provisaoExtra, observacao }) {
+  const agora = new Date().toISOString();
+  const linhas = Object.entries(metas).map(([categoria_id, valor]) => ({ categoria_id, mes, ano, valor, updated_at: agora }));
+  ok(await sb.from('metas_mensais').upsert(linhas, { onConflict: 'categoria_id,mes,ano' }));
+  ok(
+    await sb.from('orcamento_mes').upsert(
+      { mes, ano, meta_economia: metaEconomia, provisao_extra: provisaoExtra, observacao: observacao || null, updated_at: agora },
+      { onConflict: 'mes,ano' },
+    ),
+  );
+}
+
 export async function inserirLancamento(l) {
   return ok(await sb.from('lancamentos').insert(l).select().single());
+}
+
+export async function atualizarLancamento(id, campos) {
+  return ok(
+    await sb.from('lancamentos').update({ ...campos, updated_at: new Date().toISOString() }).eq('id', id).select().single(),
+  );
+}
+
+export async function excluirLancamento(id) {
+  ok(await sb.from('lancamentos').delete().eq('id', id));
 }
 
 /** Fixos, lançamentos de fixos e receitas: base do fechamento (tabelas pequenas, carrega tudo). */

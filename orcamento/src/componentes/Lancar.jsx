@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { inserirLancamento } from '../lib/dados.js';
-import { lerValor, formatarBRL } from '../lib/orcamento/index.js';
+import { atualizarLancamento, excluirLancamento, inserirLancamento } from '../lib/dados.js';
+import { lerValor, formatarBRL, formatarNumero } from '../lib/orcamento/index.js';
 
 const PESSOAS = [
   { id: 'leandro', nome: 'Leandro' },
@@ -25,8 +25,9 @@ const lerPessoaSalva = () => {
 /**
  * Folha de lançamento rápido. Fluxo mínimo: digitar valor → tocar categoria → Salvar.
  * Pessoa fica lembrada no aparelho; meio padrão cartão; parcelas padrão 1.
+ * Com `lancamento`, edita (e permite excluir) um lançamento existente.
  */
-export default function Lancar({ aberto, categorias, categoriaInicial, hoje, onFechar, onSalvo }) {
+export default function Lancar({ aberto, categorias, categoriaInicial, lancamento, hoje, onFechar, onSalvo }) {
   const [valor, setValor] = useState('');
   const [categoriaId, setCategoriaId] = useState(null);
   const [pessoa, setPessoa] = useState(lerPessoaSalva);
@@ -37,18 +38,23 @@ export default function Lancar({ aberto, categorias, categoriaInicial, hoje, onF
   const [mais, setMais] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState(null);
+  const [confirmarExclusao, setConfirmarExclusao] = useState(false);
+  const editando = !!lancamento;
 
   useEffect(() => {
     if (!aberto) return;
-    setValor('');
-    setCategoriaId(categoriaInicial ?? null);
-    setMeio('cartao');
-    setParcelas(1);
-    setData(hoje);
-    setDescricao('');
-    setMais(false);
+    const l = lancamento;
+    setValor(l ? formatarNumero(l.valor) : '');
+    setCategoriaId(l ? l.categoria_id : (categoriaInicial ?? null));
+    setPessoa(l ? l.pessoa : lerPessoaSalva());
+    setMeio(l ? l.meio : 'cartao');
+    setParcelas(l ? Number(l.total_parcelas) : 1);
+    setData(l ? l.data : hoje);
+    setDescricao(l?.descricao ?? '');
+    setMais(!!l);
     setErro(null);
-  }, [aberto, categoriaInicial, hoje]);
+    setConfirmarExclusao(false);
+  }, [aberto, categoriaInicial, lancamento, hoje]);
 
   if (!aberto) return null;
 
@@ -60,26 +66,48 @@ export default function Lancar({ aberto, categorias, categoriaInicial, hoje, onF
     if (!podeSalvar) return;
     setSalvando(true);
     setErro(null);
+    const campos = {
+      data,
+      categoria_id: categoriaId,
+      valor: numero,
+      pessoa,
+      meio,
+      total_parcelas: parcelas,
+      descricao: descricao.trim() || null,
+    };
     try {
-      await inserirLancamento({
-        data,
-        categoria_id: categoriaId,
-        valor: numero,
-        pessoa,
-        meio,
-        total_parcelas: parcelas,
-        descricao: descricao.trim() || null,
-      });
+      const cat = categorias.find((c) => c.id === categoriaId);
+      const resumo = `${formatarBRL(numero)} em ${cat?.nome ?? 'categoria'}`;
+      if (editando) {
+        await atualizarLancamento(lancamento.id, campos);
+        onSalvo(`Atualizado: ${resumo}`);
+        return;
+      }
+      await inserirLancamento(campos);
       try {
         localStorage.setItem(CHAVE_PESSOA, pessoa);
       } catch {
         /* sem armazenamento local: só não lembra a pessoa */
       }
-      const cat = categorias.find((c) => c.id === categoriaId);
-      onSalvo(`${formatarBRL(numero)} em ${cat?.nome ?? 'categoria'}`);
+      onSalvo(`Lançado: ${resumo}`);
     } catch (err) {
       setErro(err.message);
     } finally {
+      setSalvando(false);
+    }
+  }
+
+  async function excluir() {
+    if (!confirmarExclusao) {
+      setConfirmarExclusao(true);
+      return;
+    }
+    setSalvando(true);
+    try {
+      await excluirLancamento(lancamento.id);
+      onSalvo(`Excluído: ${formatarBRL(lancamento.valor)}`);
+    } catch (err) {
+      setErro(err.message);
       setSalvando(false);
     }
   }
@@ -89,7 +117,7 @@ export default function Lancar({ aberto, categorias, categoriaInicial, hoje, onF
       <form className="sheet" onClick={(e) => e.stopPropagation()} onSubmit={salvar}>
         <div className="sheet-alca" />
         <div className="sheet-topo">
-          <h2>Lançar gasto</h2>
+          <h2>{editando ? 'Editar lançamento' : 'Lançar gasto'}</h2>
           <button type="button" className="btn-texto" onClick={onFechar}>Cancelar</button>
         </div>
 
@@ -97,7 +125,7 @@ export default function Lancar({ aberto, categorias, categoriaInicial, hoje, onF
           <span>R$</span>
           <input
             // autoFocus no mesmo toque que abre a folha: é o que faz o iOS abrir o teclado.
-            autoFocus
+            autoFocus={!editando}
             inputMode="decimal"
             autoComplete="off"
             placeholder="0,00"
@@ -160,6 +188,17 @@ export default function Lancar({ aberto, categorias, categoriaInicial, hoje, onF
         )}
 
         {erro && <p className="erro">{erro}</p>}
+
+        {editando && (
+          <>
+            {lancamento.transacao_cartao_id && (
+              <p className="aviso">Este lançamento está conciliado com uma compra da fatura.</p>
+            )}
+            <button type="button" className={`btn-excluir ${confirmarExclusao ? 'confirmar' : ''}`} onClick={excluir} disabled={salvando}>
+              {confirmarExclusao ? 'Toque de novo para excluir' : 'Excluir lançamento'}
+            </button>
+          </>
+        )}
 
         <button type="submit" className="btn-primario" disabled={!podeSalvar}>
           {salvando ? 'Salvando…' : 'Salvar'}

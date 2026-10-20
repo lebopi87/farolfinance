@@ -4,15 +4,19 @@ import { useOrcamentoMes } from './hooks/useOrcamentoMes.js';
 import Hoje from './telas/Hoje.jsx';
 import Semana from './telas/Semana.jsx';
 import Mes from './telas/Mes.jsx';
+import Lancamentos from './telas/Lancamentos.jsx';
+import Parametros from './telas/Parametros.jsx';
 import Lancar from './componentes/Lancar.jsx';
 
 const ABAS = [
   { id: 'hoje', nome: 'Hoje', icone: '◎' },
   { id: 'semana', nome: 'Semana', icone: '▦' },
   { id: 'mes', nome: 'Mês', icone: '▤' },
-  { id: 'lancamentos', nome: 'Lançamentos', icone: '☰', etapa: 4 },
-  { id: 'mais', nome: 'Mais', icone: '⋯', etapa: 4 },
+  { id: 'lancamentos', nome: 'Lançamentos', icone: '☰' },
+  { id: 'mais', nome: 'Mais', icone: '⋯' },
 ];
+
+const FECHADO = { aberto: false, categoria: null, lancamento: null };
 
 // Atualiza "hoje" quando o app volta para a frente (ex.: aberto desde ontem).
 function useHoje() {
@@ -33,7 +37,8 @@ export default function App() {
   const [sel, setSel] = useState({ ano, mes });
   const orcamentoSel = useOrcamentoMes(sel.ano, sel.mes, hoje);
   const [aba, setAba] = useState('hoje');
-  const [lancar, setLancar] = useState({ aberto: false, categoria: null });
+  const [lancar, setLancar] = useState(FECHADO);
+  const [subMais, setSubMais] = useState('parametros');
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
@@ -42,28 +47,56 @@ export default function App() {
     return () => clearTimeout(t);
   }, [toast]);
 
-  const abaAtual = ABAS.find((a) => a.id === aba);
+  const recarregarTudo = () => {
+    orcamento.recarregar();
+    orcamentoSel.recarregar();
+  };
+  const avisar = (msg) => setToast(msg);
 
   return (
     <div className="app">
       <main>
         {aba === 'hoje' ? (
-          <Hoje hoje={hoje} orcamento={orcamento} onLancar={(categoria) => setLancar({ aberto: true, categoria })} />
+          <Hoje hoje={hoje} orcamento={orcamento} onLancar={(categoria) => setLancar({ ...FECHADO, aberto: true, categoria })} />
         ) : aba === 'semana' ? (
           <Semana key={`${sel.ano}-${sel.mes}`} {...sel} hoje={hoje} orcamento={orcamentoSel} onMudarMes={setSel} />
         ) : aba === 'mes' ? (
           <Mes key={`${sel.ano}-${sel.mes}`} {...sel} orcamento={orcamentoSel} onMudarMes={setSel} />
+        ) : aba === 'lancamentos' ? (
+          <Lancamentos
+            {...sel}
+            orcamento={orcamentoSel}
+            onMudarMes={setSel}
+            onEditar={(lancamento) => setLancar({ ...FECHADO, aberto: true, lancamento })}
+          />
         ) : (
           <section className="tela">
-            <header className="tela-topo"><h1>{abaAtual.nome}</h1></header>
-            <p className="carregando">Chega na Etapa {abaAtual.etapa}.</p>
+            <div className="segmentado sub-abas" role="tablist">
+              <button role="tab" aria-selected={subMais === 'parametros'} className={subMais === 'parametros' ? 'ativo' : ''} onClick={() => setSubMais('parametros')}>Parâmetros do mês</button>
+              <button role="tab" aria-selected={subMais === 'conciliacao'} className={subMais === 'conciliacao' ? 'ativo' : ''} onClick={() => setSubMais('conciliacao')}>Conciliação</button>
+            </div>
+            {subMais === 'parametros' ? (
+              <Parametros
+                {...sel}
+                orcamento={orcamentoSel}
+                onMudarMes={setSel}
+                onSalvo={(msg) => {
+                  avisar(msg);
+                  recarregarTudo();
+                }}
+              />
+            ) : (
+              <p className="carregando">Chega na Etapa 5.</p>
+            )}
           </section>
         )}
       </main>
 
-      <button className="fab" onClick={() => setLancar({ aberto: true, categoria: null })}>
-        + Lançar
-      </button>
+      {aba !== 'mais' && (
+        <button className="fab" onClick={() => setLancar({ ...FECHADO, aberto: true })}>
+          + Lançar
+        </button>
+      )}
 
       <nav className="nav">
         {ABAS.map((a) => (
@@ -78,13 +111,13 @@ export default function App() {
         aberto={lancar.aberto}
         categorias={orcamento.categorias}
         categoriaInicial={lancar.categoria}
+        lancamento={lancar.lancamento}
         hoje={hoje}
-        onFechar={() => setLancar({ aberto: false, categoria: null })}
+        onFechar={() => setLancar(FECHADO)}
         onSalvo={(msg) => {
-          setLancar({ aberto: false, categoria: null });
-          setToast(`Lançado: ${msg}`);
-          orcamento.recarregar();
-          orcamentoSel.recarregar();
+          setLancar(FECHADO);
+          avisar(msg);
+          recarregarTudo();
         }}
       />
 

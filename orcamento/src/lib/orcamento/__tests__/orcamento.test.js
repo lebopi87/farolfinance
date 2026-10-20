@@ -17,6 +17,7 @@ import {
   formatarBRL,
   formatarNumero,
   lerValor,
+  lerMontante,
   arred2,
 } from '../index.js';
 
@@ -277,6 +278,10 @@ describe('exibição', () => {
     expect(lerValor('0')).toBeNull();
     expect(lerValor('abc')).toBeNull();
     expect(lerValor('1,234')).toBeNull();
+    expect(lerMontante('')).toBe(0);
+    expect(lerMontante('0,00')).toBe(0);
+    expect(lerMontante('1.400,00')).toBe(1400);
+    expect(lerMontante('-5')).toBeNull();
   });
 });
 

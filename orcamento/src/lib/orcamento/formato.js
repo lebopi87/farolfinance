@@ -58,3 +58,10 @@ export function lerValor(texto) {
   const n = Number(s);
   return n > 0 ? n : null;
 }
+
+/** Como lerValor, mas aceita zero e vazio (= 0). Para metas e parâmetros. */
+export function lerMontante(texto) {
+  const s = String(texto ?? '').replace(/R\$|\s/g, '');
+  if (s === '' || /^0+([.,]0*)?$/.test(s)) return 0;
+  return lerValor(s);
+}

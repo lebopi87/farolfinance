@@ -218,3 +218,34 @@ input { font: inherit; font-size: 16px; /* evita zoom no iOS */ }
 .linha small { margin-left: 4px; }
 .parcelas { list-style: none; background: var(--surface2); border-radius: 8px; padding: 4px 10px; margin: 2px 0 6px; font-size: 13px; }
 .parcelas li { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; }
+
+.btn-excluir { height: 44px; border-radius: 22px; color: var(--red); font-weight: 600; border: 1px solid var(--red-light); }
+.btn-excluir.confirmar { background: var(--red); color: #fff; }
+
+/* Lançamentos */
+.filtros { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.filtros select { font-size: 16px; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+.segmentado.compacto button { padding: 7px 4px; font-size: 13px; }
+.grupo-dia { margin-bottom: 12px; }
+.grupo-topo { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--text2); padding: 0 4px 6px; }
+.lista-lanc { list-style: none; padding: 0; }
+.lista-lanc li + li { border-top: 1px solid var(--surface2); }
+.item-lanc { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 14px; text-align: left; }
+.cat-icone.pequeno { width: 34px; height: 34px; font-size: 17px; border-radius: 10px; }
+.item-lanc .cat-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.selos { display: flex; gap: 4px; justify-content: flex-end; }
+.selo { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 6px; background: var(--accent-light); color: var(--accent); }
+.selo.ok { background: #e8f5ed; color: var(--green); }
+
+/* Mais / Parâmetros */
+.sub-abas { margin-bottom: 14px; }
+.form-parametros .titulo-secao { margin-top: 18px; }
+.btn-secundario { width: 100%; height: 44px; border-radius: 22px; border: 1px solid var(--accent); color: var(--accent); font-weight: 600; margin-bottom: 8px; }
+.campo-linha { align-items: center; }
+.campo-moeda { display: flex; align-items: center; gap: 4px; border: 1px solid var(--border); border-radius: 8px; padding: 0 8px; background: #fff; }
+.campo-moeda span { color: var(--text3); font-size: 13px; }
+.campo-moeda input { border: none; outline: none; width: 96px; padding: 8px 0; text-align: right; background: transparent; }
+.campo-moeda.invalido { border-color: var(--red); }
+.campo-coluna { flex-direction: column; align-items: stretch; gap: 6px; }
+.campo-coluna input { padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; }
+.salvar-parametros { width: 100%; margin-top: 16px; }
