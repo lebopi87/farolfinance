@@ -74,7 +74,7 @@ input { font: inherit; font-size: 16px; /* evita zoom no iOS */ }
 .cat-nome { font-weight: 600; }
 .cat-sub { font-size: 12px; color: var(--text3); }
 .cat-valor { text-align: right; display: flex; flex-direction: column; gap: 2px; max-width: 45%; }
-.cat-valor strong { font-size: 16px; }
+.cat-valor strong { font-size: 16px; white-space: nowrap; }
 .barra { display: block; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; margin-top: 2px; }
 .barra > span { display: block; height: 100%; border-radius: 2px; }
 
@@ -160,6 +160,7 @@ input { font: inherit; font-size: 16px; /* evita zoom no iOS */ }
 .mais-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .mais-campos input { width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
 
+.sheet .btn-primario { position: sticky; bottom: 0; flex-shrink: 0; box-shadow: 0 -8px 16px var(--surface); }
 .btn-primario { height: 52px; border-radius: 26px; background: var(--accent); color: #fff; font-size: 17px; font-weight: 600; }
 .btn-primario:disabled { opacity: 0.4; }
 

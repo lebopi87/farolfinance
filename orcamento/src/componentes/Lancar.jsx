@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { inserirLancamento } from '../lib/dados.js';
 import { lerValor, formatarBRL } from '../lib/orcamento/index.js';
 
@@ -37,7 +37,6 @@ export default function Lancar({ aberto, categorias, categoriaInicial, hoje, onF
   const [mais, setMais] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState(null);
-  const inputValor = useRef(null);
 
   useEffect(() => {
     if (!aberto) return;
@@ -49,8 +48,6 @@ export default function Lancar({ aberto, categorias, categoriaInicial, hoje, onF
     setDescricao('');
     setMais(false);
     setErro(null);
-    // Foco imediato abre o teclado numérico.
-    setTimeout(() => inputValor.current?.focus(), 50);
   }, [aberto, categoriaInicial, hoje]);
 
   if (!aberto) return null;
@@ -99,7 +96,8 @@ export default function Lancar({ aberto, categorias, categoriaInicial, hoje, onF
         <label className="campo-valor">
           <span>R$</span>
           <input
-            ref={inputValor}
+            // autoFocus no mesmo toque que abre a folha: é o que faz o iOS abrir o teclado.
+            autoFocus
             inputMode="decimal"
             autoComplete="off"
             placeholder="0,00"

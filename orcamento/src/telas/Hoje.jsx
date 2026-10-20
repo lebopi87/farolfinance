@@ -68,7 +68,7 @@ export default function Hoje({ hoje, orcamento, onLancar }) {
                 <span className="cat-info">
                   <span className="cat-nome">{l.categoria.nome}</span>
                   <span className="cat-sub">
-                    Semana: {semExib.estourado ? semExib.texto.toLowerCase() : `sobra ${semExib.texto}`}
+                    Semana: {semExib.estourado ? `estourou ${formatarBRL(-l.semana.saldo)}` : `sobra ${semExib.texto}`}
                   </span>
                   {pct !== null && (
                     <span className="barra" aria-label={`Mês: ${formatarPercentual(pct)} da meta`}>
@@ -77,7 +77,10 @@ export default function Hoje({ hoje, orcamento, onLancar }) {
                   )}
                 </span>
                 <span className="cat-valor">
-                  <strong className={hojeExib.estourado ? 'neg' : ''}>{hojeExib.texto}</strong>
+                  <span className="cat-sub">{hojeExib.estourado ? 'estourou hoje' : 'pode gastar'}</span>
+                  <strong className={hojeExib.estourado ? 'neg' : ''}>
+                    {hojeExib.estourado ? formatarBRL(-l.dia.disponivel) : hojeExib.texto}
+                  </strong>
                   {l.dia.realizado > 0 && <span className="cat-sub">gastou {formatarBRL(l.dia.realizado)}</span>}
                 </span>
               </button>
