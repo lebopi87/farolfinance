@@ -15,6 +15,7 @@ import {
   exibirMeta,
   resultadoDoDia,
   formatarBRL,
+  lerValor,
   arred2,
 } from '../index.js';
 
@@ -265,6 +266,15 @@ describe('exibição', () => {
   it('formata reais', () => {
     expect(formatarBRL(1234567.891)).toBe('R$ 1.234.567,89');
     expect(formatarBRL(-1.918)).toBe('-R$ 1,92');
+  });
+  it('lê o valor digitado no lançamento', () => {
+    expect(lerValor('12,50')).toBe(12.5);
+    expect(lerValor('1.234,56')).toBe(1234.56);
+    expect(lerValor('12.5')).toBe(12.5);
+    expect(lerValor('R$ 8')).toBe(8);
+    expect(lerValor('0')).toBeNull();
+    expect(lerValor('abc')).toBeNull();
+    expect(lerValor('1,234')).toBeNull();
   });
 });
 

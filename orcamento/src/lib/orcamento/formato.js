@@ -43,3 +43,13 @@ export function resultadoDoDia({ meta, realizado, passou }) {
     ? { tipo: 'economizou', valor: diff, texto: `Economizou ${formatarBRL(diff)}` }
     : { tipo: 'excedeu', valor: -diff, texto: `Excedeu ${formatarBRL(-diff)}` };
 }
+
+/** Valor digitado ('12,50', '1.234,56', '12.5', 'R$ 8') → número, ou null se inválido. */
+export function lerValor(texto) {
+  let s = String(texto ?? '').replace(/R\$|\s/g, '');
+  if (!s) return null;
+  if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+  if (!/^\d+(\.\d{1,2})?$/.test(s)) return null;
+  const n = Number(s);
+  return n > 0 ? n : null;
+}
